@@ -1,0 +1,13 @@
+{
+  "lancamentos": [
+    {
+      "local": "BigBox",
+      "data": "2026-06-29",
+      "mes": "Junho",
+      "valor": 20,
+      "parcelas": 1,
+      "id": "hpUpqQVj_0c"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

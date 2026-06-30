@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Financeiro - Ellen</title>
+<style>
+  :root{
+    --bg:#0f1410;
+    --bg-elev:#161c17;
+    --line:#2a322b;
+    --ink:#eef0ea;
+    --ink-soft:#9fab9d;
+    --green:#7fd99a;
+    --green-deep:#3f8a5c;
+    --red:#e8836b;
+    --gold:#d4b483;
+    --radius:10px;
+    --mono:'JetBrains Mono', 'Courier New', monospace;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--mono);
+    min-height:100vh;
+  }
+  header{
+    padding:32px clamp(20px,5vw,64px) 20px;
+    border-bottom:1px solid var(--line);
+  }
+  header .eyebrow{
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--green);
+  }
+  header h1{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:clamp(28px,4vw,40px);
+    margin:6px 0 4px;
+    letter-spacing:.01em;
+  }
+  header p{
+    color:var(--ink-soft);
+    margin:0;
+    font-size:13px;
+  }
+
+  .summary{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    margin:24px clamp(20px,5vw,64px) 0;
+  }
+  .summary .card{
+    background:var(--bg-elev);
+    padding:18px 20px;
+  }
+  .summary .card .label{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .summary .card .value{
+    font-family:var(--serif);
+    font-size:24px;
+    margin-top:6px;
+  }
+  .summary .card.total .value{color:var(--gold);}
+  .summary .card.entries .value{color:var(--green);}
+
+  main{
+    padding:28px clamp(20px,5vw,64px) 60px;
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:32px;
+  }
+  @media (max-width:860px){
+    main{grid-template-columns:1fr;}
+  }
+
+  form{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    height:fit-content;
+    position:sticky;
+    top:20px;
+  }
+  form h2{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:18px;
+    margin:0 0 16px;
+    color:var(--gold);
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input, .field select{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--ink);
+    padding:9px 10px;
+    font-family:var(--mono);
+    font-size:13px;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;
+    border-color:var(--green-deep);
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .btn{
+    width:100%;
+    padding:11px;
+    border-radius:6px;
+    border:1px solid var(--green-deep);
+    background:var(--green-deep);
+    color:#0f1410;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:.04em;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .btn:hover{background:var(--green);border-color:var(--green);}
+  .btn.cancel{
+    background:transparent;
+    color:var(--ink-soft);
+    border-color:var(--line);
+    margin-top:8px;
+  }
+  .btn.cancel:hover{color:var(--ink);border-color:var(--ink-soft);}
+
+  .list-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:14px;
+  }
+  .list-head h2{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:18px;
+    margin:0;
+  }
+  .filter{
+    display:flex;
+    gap:8px;
+  }
+  .filter select{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    border-radius:6px;
+    padding:6px 8px;
+    font-family:var(--mono);
+    font-size:12px;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  thead th{
+    text-align:left;
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    padding:8px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  tbody td{
+    padding:11px 10px;
+    border-bottom:1px solid var(--line);
+    vertical-align:middle;
+  }
+  tbody tr:hover{background:rgba(255,255,255,.02);}
+  .val{color:var(--red);font-weight:700;}
+  .parcela-tag{
+    font-size:11px;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:2px 8px;
+  }
+  .actions button{
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--ink-soft);
+    font-family:var(--mono);
+    font-size:12px;
+    padding:4px 6px;
+  }
+  .actions button:hover{color:var(--green);}
+  .actions button.del:hover{color:var(--red);}
+  .empty{
+    padding:40px 10px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+  }
+  .toast{
+    position:fixed;
+    bottom:24px;
+    right:24px;
+    background:var(--green-deep);
+    color:#0f1410;
+    padding:10px 16px;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:700;
+    opacity:0;
+    transform:translateY(8px);
+    transition:.25s;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Controle Financeiro</div>
+  <h1>Ellen</h1>
+  <p>Registrando cada compra</p>
+</header>
+
+<div class="summary">
+  <div class="card total">
+    <div class="label">Total lançado</div>
+    <div class="value" id="sumTotal">R$ 0,00</div>
+  </div>
+  <div class="card entries">
+    <div class="label">Lançamentos</div>
+    <div class="value" id="sumCount">0</div>
+  </div>
+  <div class="card">
+    <div class="label">Mês em destaque</div>
+    <div class="value" id="sumMonth">—</div>
+  </div>
+  <div class="card">
+    <div class="label">Crédito</div>
+    <div class="value" id="sumCredito">R$ 0,00</div>
+  </div>
+  <div class="card">
+    <div class="label">Débito</div>
+    <div class="value" id="sumDebito">R$ 0,00</div>
+  </div>
+  <div class="card">
+    <div class="label">Pix</div>
+    <div class="value" id="sumPix">R$ 0,00</div>
+  </div>
+  <div class="card">
+    <div class="label">Boleto</div>
+    <div class="value" id="sumBoleto">R$ 0,00</div>
+  </div>
+</div>
+
+<main>
+  <form id="form">
+    <h2 id="formTitle">Novo lançamento</h2>
+    <input type="hidden" id="editId">
+
+    <div class="field">
+      <label for="local">Local / descrição</label>
+      <input type="text" id="local" placeholder="Ex: Mercado Pão de Açúcar" required>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="data">Data</label>
+        <input type="date" id="data" required>
+      </div>
+      <div class="field">
+        <label for="mes">Mês ref.</label>
+        <select id="mes" required></select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="valor">Valor (R$)</label>
+        <input type="number" id="valor" step="0.01" min="0" placeholder="0,00" required>
+      </div>
+      <div class="field">
+        <label for="parcelas">Parcelas</label>
+        <input type="number" id="parcelas" min="1" value="1" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="pagamento">Forma de pagamento</label>
+      <select id="pagamento" required>
+        <option value="Crédito">Crédito</option>
+        <option value="Débito">Débito</option>
+        <option value="Pix">Pix</option>
+        <option value="Boleto">Boleto</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn" id="submitBtn">Adicionar lançamento</button>
+    <button type="button" class="btn cancel" id="cancelBtn" style="display:none">Cancelar edição</button>
+  </form>
+
+  <section>
+    <div class="list-head">
+      <h2>Lançamentos</h2>
+      <div class="filter">
+        <select id="filterMonth">
+          <option value="">Todos os meses</option>
+        </select>
+      </div>
+    </div>
+
+    <table id="table" style="display:none">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Local</th>
+          <th>Mês</th>
+          <th>Parcelas</th>
+          <th>Pagamento</th>
+          <th>Valor</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="emptyState">Nenhum lançamento ainda. Use o formulário ao lado para começar.</div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   CAMADA DE "API" — troque a implementação destas 4 funções
+   por chamadas fetch() a um Mock API (json-server, MockAPI.io,
+   etc.) sem mudar o resto do código. Veja instruções no chat.
+   ========================================================= */
+const STORAGE_KEY = 'razao_lancamentos_v1';
+
+const api = {
+  async list(){
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  },
+  async create(item){
+    const items = await api.list();
+    item.id = Date.now().toString();
+    items.unshift(item);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    return item;
+  },
+  async update(id, data){
+    const items = await api.list();
+    const idx = items.findIndex(i => i.id === id);
+    if(idx > -1){ items[idx] = {...items[idx], ...data}; }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    return items[idx];
+  },
+  async remove(id){
+    const items = (await api.list()).filter(i => i.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+};
+
+/* ========================= UI ========================= */
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const form = document.getElementById('form');
+const localInput = document.getElementById('local');
+const dataInput = document.getElementById('data');
+const mesSelect = document.getElementById('mes');
+const valorInput = document.getElementById('valor');
+const parcelasInput = document.getElementById('parcelas');
+const pagamentoInput = document.getElementById('pagamento');
+const editId = document.getElementById('editId');
+const submitBtn = document.getElementById('submitBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const formTitle = document.getElementById('formTitle');
+const tbody = document.getElementById('tbody');
+const table = document.getElementById('table');
+const emptyState = document.getElementById('emptyState');
+const filterMonth = document.getElementById('filterMonth');
+const toast = document.getElementById('toast');
+
+function fillMonthOptions(select){
+  select.innerHTML = '<option value="">Selecione</option>' +
+    MESES.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+fillMonthOptions(mesSelect);
+filterMonth.innerHTML += MESES.map(m => `<option value="${m}">${m}</option>`).join('');
+
+function brl(v){
+  return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+function resetForm(){
+  form.reset();
+  parcelasInput.value = 1;
+  editId.value = '';
+  formTitle.textContent = 'Novo lançamento';
+  submitBtn.textContent = 'Adicionar lançamento';
+  cancelBtn.style.display = 'none';
+}
+
+async function render(){
+  const items = await api.list();
+  const filtered = filterMonth.value
+    ? items.filter(i => i.mes === filterMonth.value)
+    : items;
+
+  // resumo
+  const total = items.reduce((s,i) => s + Number(i.valor), 0);
+  document.getElementById('sumTotal').textContent = brl(total);
+  document.getElementById('sumCount').textContent = items.length;
+
+  const totalCredito = items.filter(i => i.pagamento === 'Crédito').reduce((s,i) => s + Number(i.valor), 0);
+  const totalDebito = items.filter(i => i.pagamento === 'Débito').reduce((s,i) => s + Number(i.valor), 0);
+  const totalPix = items.filter(i => i.pagamento === 'Pix').reduce((s,i) => s + Number(i.valor), 0);
+  const totalBoleto = items.filter(i => i.pagamento === 'Boleto').reduce((s,i) => s + Number(i.valor), 0);
+  document.getElementById('sumCredito').textContent = brl(totalCredito);
+  document.getElementById('sumDebito').textContent = brl(totalDebito);
+  document.getElementById('sumPix').textContent = brl(totalPix);
+  document.getElementById('sumBoleto').textContent = brl(totalBoleto);
+
+  const counts = {};
+  items.forEach(i => counts[i.mes] = (counts[i.mes]||0) + 1);
+  const topMonth = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('sumMonth').textContent = topMonth ? topMonth[0] : '—';
+
+  if(filtered.length === 0){
+    table.style.display = 'none';
+    emptyState.style.display = 'block';
+    return;
+  }
+  table.style.display = 'table';
+  emptyState.style.display = 'none';
+
+  tbody.innerHTML = filtered
+    .sort((a,b) => new Date(b.data) - new Date(a.data))
+    .map(i => `
+      <tr>
+        <td>${new Date(i.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+        <td>${i.local}</td>
+        <td>${i.mes}</td>
+        <td><span class="parcela-tag">${i.parcelas}x</span></td>
+        <td><span class="parcela-tag">${i.pagamento}</span></td>
+        <td class="val">${brl(Number(i.valor))}</td>
+        <td class="actions">
+          <button data-edit="${i.id}">editar</button>
+          <button data-del="${i.id}" class="del">excluir</button>
+        </td>
+      </tr>
+    `).join('');
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    local: localInput.value.trim(),
+    data: dataInput.value,
+    mes: mesSelect.value,
+    valor: parseFloat(valorInput.value),
+    parcelas: parseInt(parcelasInput.value, 10),
+    pagamento: pagamentoInput.value
+  };
+  if(editId.value){
+    await api.update(editId.value, payload);
+    showToast('Lançamento atualizado');
+  } else {
+    await api.create(payload);
+    showToast('Lançamento adicionado');
+  }
+  resetForm();
+  render();
+});
+
+tbody.addEventListener('click', async (e) => {
+  const editBtnId = e.target.getAttribute('data-edit');
+  const delBtnId = e.target.getAttribute('data-del');
+
+  if(editBtnId){
+    const items = await api.list();
+    const item = items.find(i => i.id === editBtnId);
+    if(!item) return;
+    localInput.value = item.local;
+    dataInput.value = item.data;
+    mesSelect.value = item.mes;
+    valorInput.value = item.valor;
+    parcelasInput.value = item.parcelas;
+    pagamentoInput.value = item.pagamento || 'Crédito';
+    editId.value = item.id;
+    formTitle.textContent = 'Editar lançamento';
+    submitBtn.textContent = 'Salvar alterações';
+    cancelBtn.style.display = 'block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  if(delBtnId){
+    if(confirm('Excluir este lançamento?')){
+      await api.remove(delBtnId);
+      showToast('Lançamento excluído');
+      render();
+    }
+  }
+});
+
+cancelBtn.addEventListener('click', resetForm);
+filterMonth.addEventListener('change', render);
+
+// mês automático ao escolher a data
+dataInput.addEventListener('change', () => {
+  if(dataInput.value){
+    const m = new Date(dataInput.value + 'T00:00:00').getMonth();
+    mesSelect.value = MESES[m];
+  }
+});
+
+render();
+</script>
+</body>
+</html>
